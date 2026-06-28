@@ -104,7 +104,7 @@ async def broadcast_lobby() -> None:
     for player_id, websocket in connections.items():
         try:
             await websocket.send_json(message)
-        except RuntimeError:
+        except (RuntimeError, WebSocketDisconnect):
             disconnected.append(player_id)
 
     for player_id in disconnected:

@@ -1,6 +1,8 @@
 import logging
+from asyncio import run
 
 from fastapi.testclient import TestClient
+from starlette.websockets import WebSocketDisconnect
 
 from app import main
 from app.lobby import Lobby
@@ -61,3 +63,17 @@ def test_logs_player_names_for_connects_and_disconnects(caplog):
     assert "Player joined lobby: Eric" in messages
     assert "Player connected to lobby: Eric" in messages
     assert "Player disconnected from lobby: Eric" in messages
+
+
+def test_broadcast_removes_websockets_that_disconnect_during_send():
+    class ClosedWebSocket:
+        async def send_json(self, message):
+            raise WebSocketDisconnect(code=1006)
+
+    main.lobby = Lobby()
+    player = main.lobby.join("Eric")
+    main.connections = {player.id: ClosedWebSocket()}
+
+    run(main.broadcast_lobby())
+
+    assert main.connections == {}
