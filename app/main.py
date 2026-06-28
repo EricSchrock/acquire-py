@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from collections.abc import AsyncIterator, Sequence
 
 from fastapi import FastAPI, Form, Query, Request, WebSocket, WebSocketDisconnect
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -33,6 +33,10 @@ templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 lobby = Lobby()
 connections: dict[str, WebSocket] = {}
+FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="10" fill="#0f6b5f"/>
+  <text x="32" y="42" text-anchor="middle" font-family="Arial, sans-serif" font-size="32" font-weight="700" fill="white">A</text>
+</svg>"""
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -42,6 +46,11 @@ async def index(request: Request) -> HTMLResponse:
         "index.html",
         {"snapshot": lobby.snapshot()},
     )
+
+
+@app.get("/favicon.ico")
+async def favicon() -> Response:
+    return Response(content=FAVICON, media_type="image/svg+xml")
 
 
 @app.post("/join")

@@ -25,6 +25,15 @@ def test_join_endpoint_returns_player_id_and_snapshot():
     assert body["lobby"]["players"][0]["name"] == "Eric"
 
 
+def test_favicon_route_avoids_browser_404():
+    client = make_client()
+
+    response = client.get("/favicon.ico")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "image/svg+xml"
+
+
 def test_start_endpoint_requires_host():
     client = make_client()
     host_id = client.post("/join", data={"player_name": "A"}).json()["player_id"]
