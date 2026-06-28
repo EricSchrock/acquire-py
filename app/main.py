@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 
 from fastapi import FastAPI, Form, Query, Request, WebSocket, WebSocketDisconnect
@@ -10,6 +11,7 @@ from fastapi.templating import Jinja2Templates
 from app.lobby import Lobby, LobbyError
 
 
+logger = logging.getLogger("uvicorn.error")
 BASE_DIR = Path(__file__).resolve().parent
 
 app = FastAPI(title="Acquire Pregame Lobby")
@@ -36,6 +38,7 @@ async def join(player_name: str = Form(...)) -> JSONResponse:
     except LobbyError as error:
         return JSONResponse({"error": str(error), "lobby": lobby.snapshot()}, status_code=400)
 
+    logger.info("Player joined lobby: %s", player.name)
     await broadcast_lobby()
     return JSONResponse({"player_id": player.id, "lobby": lobby.snapshot()})
 
@@ -73,6 +76,7 @@ async def websocket_endpoint(
         await old_connection.close(code=1000)
 
     connections[player_id] = websocket
+    logger.info("Player connected to lobby: %s", player_name(player_id))
     await websocket.send_json({"type": "lobby", "lobby": lobby.snapshot()})
 
     try:
@@ -85,9 +89,11 @@ async def websocket_endpoint(
 
 
 async def remove_player(player_id: str) -> None:
+    name = player_name(player_id)
     before = lobby.snapshot()
     lobby.leave(player_id)
     if before != lobby.snapshot():
+        logger.info("Player disconnected from lobby: %s", name)
         await broadcast_lobby()
 
 
@@ -103,3 +109,10 @@ async def broadcast_lobby() -> None:
 
     for player_id in disconnected:
         connections.pop(player_id, None)
+
+
+def player_name(player_id: str) -> str:
+    for player in lobby.players:
+        if player.id == player_id:
+            return player.name
+    return "unknown player"

@@ -1,3 +1,5 @@
+import logging
+
 from fastapi.testclient import TestClient
 
 from app import main
@@ -45,3 +47,17 @@ def test_waiting_websocket_disconnect_removes_player():
         assert websocket.receive_json()["lobby"]["players"][0]["name"] == "Eric"
 
     assert main.lobby.players == []
+
+
+def test_logs_player_names_for_connects_and_disconnects(caplog):
+    client = make_client()
+
+    with caplog.at_level(logging.INFO, logger="uvicorn.error"):
+        player_id = client.post("/join", data={"player_name": "Eric"}).json()["player_id"]
+        with client.websocket_connect(f"/ws?player_id={player_id}") as websocket:
+            websocket.receive_json()
+
+    messages = [record.getMessage() for record in caplog.records]
+    assert "Player joined lobby: Eric" in messages
+    assert "Player connected to lobby: Eric" in messages
+    assert "Player disconnected from lobby: Eric" in messages
