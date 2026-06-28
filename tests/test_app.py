@@ -77,3 +77,22 @@ def test_broadcast_removes_websockets_that_disconnect_during_send():
     run(main.broadcast_lobby())
 
     assert main.connections == {}
+
+
+def test_join_urls_include_localhost_and_lan_addresses():
+    urls = main.join_urls(8001, ["192.0.2.10", main.LOOPBACK_HOST])
+
+    assert urls == ["http://127.0.0.1:8001", "http://192.0.2.10:8001"]
+
+
+def test_configured_port_reads_uvicorn_port_argument(monkeypatch):
+    monkeypatch.delenv("ACQUIRE_PORT", raising=False)
+
+    assert main.configured_port(["uvicorn", "app.main:app", "--port", "8001"]) == 8001
+    assert main.configured_port(["uvicorn", "app.main:app", "--port=8002"]) == 8002
+
+
+def test_configured_port_prefers_environment_variable(monkeypatch):
+    monkeypatch.setenv("ACQUIRE_PORT", "9000")
+
+    assert main.configured_port(["uvicorn", "app.main:app", "--port", "8001"]) == 9000

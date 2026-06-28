@@ -1,7 +1,12 @@
 from __future__ import annotations
 
 import logging
+import os
 from pathlib import Path
+import socket
+import sys
+from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator, Sequence
 
 from fastapi import FastAPI, Form, Query, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -13,8 +18,16 @@ from app.lobby import Lobby, LobbyError
 
 logger = logging.getLogger("uvicorn.error")
 BASE_DIR = Path(__file__).resolve().parent
+LOOPBACK_HOST = "127.0.0.1"
 
-app = FastAPI(title="Acquire Pregame Lobby")
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    log_join_urls()
+    yield
+
+
+app = FastAPI(title="Acquire Pregame Lobby", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
@@ -116,3 +129,44 @@ def player_name(player_id: str) -> str:
         if player.id == player_id:
             return player.name
     return "unknown player"
+
+
+def log_join_urls() -> None:
+    logger.info("Players can join this lobby at:")
+    for url in join_urls(configured_port()):
+        logger.info("  %s", url)
+
+
+def join_urls(port: int, addresses: Sequence[str] | None = None) -> list[str]:
+    if addresses is None:
+        addresses = local_ipv4_addresses()
+
+    urls = [f"http://{LOOPBACK_HOST}:{port}"]
+    urls.extend(f"http://{address}:{port}" for address in addresses if address != LOOPBACK_HOST)
+    return list(dict.fromkeys(urls))
+
+
+def local_ipv4_addresses() -> list[str]:
+    addresses: set[str] = set()
+    try:
+        for address in socket.gethostbyname_ex(socket.gethostname())[2]:
+            if not address.startswith("127."):
+                addresses.add(address)
+    except OSError:
+        pass
+    return sorted(addresses)
+
+
+def configured_port(argv: Sequence[str] | None = None) -> int:
+    env_port = os.environ.get("ACQUIRE_PORT")
+    if env_port:
+        return int(env_port)
+
+    args = list(sys.argv if argv is None else argv)
+    for index, arg in enumerate(args):
+        if arg == "--port" and index + 1 < len(args):
+            return int(args[index + 1])
+        if arg.startswith("--port="):
+            return int(arg.split("=", 1)[1])
+
+    return 8000

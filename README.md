@@ -16,6 +16,8 @@ Start one lobby:
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
+The server log prints the local and LAN links players can use to join.
+
 Start a second independent lobby on another port:
 
 ```powershell
