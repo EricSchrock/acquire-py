@@ -1,0 +1,176 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: #f4f1ea;
+  color: #1d2528;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  background: #0f6b5f;
+  color: white;
+  cursor: pointer;
+  font-weight: 700;
+  min-height: 42px;
+  padding: 0 18px;
+}
+
+button:disabled {
+  background: #9aa8a5;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: #5d6468;
+}
+
+input {
+  border: 1px solid #aeb8b4;
+  border-radius: 6px;
+  min-height: 42px;
+  padding: 0 12px;
+}
+
+.shell {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px;
+}
+
+.panel {
+  background: #fffdf8;
+  border: 1px solid #ddd6c9;
+  border-radius: 8px;
+  box-shadow: 0 16px 40px rgba(37, 31, 23, 0.12);
+  max-width: 760px;
+  padding: 32px;
+  width: 100%;
+}
+
+.masthead,
+.section-header,
+.actions,
+.inline-controls {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+}
+
+.masthead,
+.section-header {
+  justify-content: space-between;
+}
+
+.eyebrow {
+  color: #63706d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  font-size: 3rem;
+  line-height: 1;
+  margin-bottom: 0;
+}
+
+h2 {
+  font-size: 1.2rem;
+  margin-bottom: 0;
+}
+
+.status-pill {
+  background: #e7f0ee;
+  border-radius: 999px;
+  color: #0f6b5f;
+  font-weight: 800;
+  padding: 8px 14px;
+}
+
+.join-view,
+.player-view,
+.players-section,
+.started-view {
+  margin-top: 28px;
+}
+
+.form-row label {
+  display: block;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.inline-controls input {
+  flex: 1;
+  min-width: 0;
+}
+
+.signed-in {
+  margin-bottom: 12px;
+}
+
+.message {
+  color: #9a3b2f;
+  font-weight: 700;
+  min-height: 24px;
+  margin: 18px 0 0;
+}
+
+.players {
+  display: grid;
+  gap: 10px;
+  list-style-position: inside;
+  margin: 16px 0 0;
+  padding: 0;
+}
+
+.players li {
+  align-items: center;
+  background: #f3f7f6;
+  border: 1px solid #d7e2df;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.host-badge {
+  color: #0f6b5f;
+  font-size: 0.82rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.started-view {
+  border-top: 1px solid #ddd6c9;
+  padding-top: 24px;
+}
+
+.hidden {
+  display: none;
+}

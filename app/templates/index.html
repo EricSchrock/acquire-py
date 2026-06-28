@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Acquire Lobby</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <div class="masthead">
+          <div>
+            <p class="eyebrow">Pregame Lobby</p>
+            <h1>Acquire</h1>
+          </div>
+          <div id="status-pill" class="status-pill">Waiting</div>
+        </div>
+
+        <div id="join-view" class="join-view">
+          <form id="join-form" class="form-row">
+            <label for="player-name">Player name</label>
+            <div class="inline-controls">
+              <input id="player-name" name="player_name" autocomplete="name" maxlength="32" required>
+              <button type="submit">Join</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="player-view" class="player-view hidden">
+          <p class="signed-in">Playing as <strong id="current-player-name"></strong></p>
+          <div class="actions">
+            <button id="start-button" type="button">Start Game</button>
+            <button id="leave-button" class="secondary" type="button">Leave</button>
+          </div>
+        </div>
+
+        <p id="message" class="message" role="status"></p>
+
+        <section class="players-section" aria-labelledby="players-heading">
+          <div class="section-header">
+            <h2 id="players-heading">Players</h2>
+            <span id="player-count">0 / 4</span>
+          </div>
+          <ol id="players" class="players"></ol>
+        </section>
+
+        <section id="started-view" class="started-view hidden">
+          <h2>Game Started</h2>
+          <p>The lobby is locked. The Acquire board will go here next.</p>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      window.INITIAL_LOBBY = {{ snapshot | tojson }};
+    </script>
+    <script src="{{ url_for('static', path='/lobby.js') }}"></script>
+  </body>
+</html>
