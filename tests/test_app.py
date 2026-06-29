@@ -10,6 +10,7 @@ from app.lobby import Lobby
 
 def make_client() -> TestClient:
     main.lobby = Lobby()
+    main.game = None
     main.connections = {}
     return TestClient(main.app)
 
@@ -48,6 +49,20 @@ def test_start_endpoint_requires_host():
 
     assert response.status_code == 200
     assert response.json()["lobby"]["status"] == "started"
+    assert response.json()["game"]["phase"] == "place_tile"
+
+
+def test_game_action_places_tile_after_start():
+    client = make_client()
+    host_id = client.post("/join", data={"player_name": "A"}).json()["player_id"]
+    client.post("/join", data={"player_name": "B"})
+    game = client.post("/start", data={"player_id": host_id}).json()["game"]
+    tile = game["players"][0]["hand"][0]
+
+    response = client.post("/game/place-tile", data={"player_id": host_id, "tile": tile})
+
+    assert response.status_code == 200
+    assert response.json()["game"]["board"][tile] is None
 
 
 def test_waiting_websocket_disconnect_removes_player():

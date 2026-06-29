@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 import os
+import json
 from pathlib import Path
 import socket
 import sys
@@ -13,6 +14,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from app.game import Game, GameError
 from app.lobby import Lobby, LobbyError
 
 
@@ -27,11 +29,12 @@ async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     yield
 
 
-app = FastAPI(title="Acquire Pregame Lobby", lifespan=lifespan)
+app = FastAPI(title="Acquire", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 templates = Jinja2Templates(directory=BASE_DIR / "templates")
 
 lobby = Lobby()
+game: Game | None = None
 connections: dict[str, WebSocket] = {}
 FAVICON = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="10" fill="#0f6b5f"/>
@@ -44,7 +47,7 @@ async def index(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(
         request,
         "index.html",
-        {"snapshot": lobby.snapshot()},
+        {"snapshot": lobby.snapshot(), "game_snapshot": None},
     )
 
 
@@ -61,26 +64,59 @@ async def join(player_name: str = Form(...)) -> JSONResponse:
         return JSONResponse({"error": str(error), "lobby": lobby.snapshot()}, status_code=400)
 
     logger.info("Player joined lobby: %s", player.name)
-    await broadcast_lobby()
-    return JSONResponse({"player_id": player.id, "lobby": lobby.snapshot()})
+    await broadcast_state()
+    return JSONResponse({"player_id": player.id, "lobby": lobby.snapshot(), "game": None})
 
 
 @app.post("/start")
 async def start(player_id: str = Form(...)) -> JSONResponse:
+    global game
     try:
         lobby.start(player_id)
+        game = Game.new([(player.id, player.name) for player in lobby.players])
     except LobbyError as error:
-        return JSONResponse({"error": str(error), "lobby": lobby.snapshot()}, status_code=400)
+        return JSONResponse({"error": str(error), "lobby": lobby.snapshot(), "game": None}, status_code=400)
+    except GameError as error:
+        return JSONResponse({"error": str(error), "lobby": lobby.snapshot(), "game": None}, status_code=400)
 
-    await broadcast_lobby()
-    return JSONResponse({"lobby": lobby.snapshot()})
+    await broadcast_state()
+    return JSONResponse({"lobby": lobby.snapshot(), "game": game.snapshot(player_id)})
 
 
 @app.post("/leave")
 async def leave(player_id: str = Form(...)) -> JSONResponse:
     await remove_player(player_id)
-    return JSONResponse({"lobby": lobby.snapshot()})
+    return JSONResponse({"lobby": lobby.snapshot(), "game": game_snapshot(player_id)})
 
+
+@app.post("/game/place-tile")
+async def place_tile(player_id: str = Form(...), tile: str = Form(...)) -> JSONResponse:
+    return await game_action(player_id, lambda active_game: active_game.place_tile(player_id, tile))
+
+
+@app.post("/game/found-chain")
+async def found_chain(player_id: str = Form(...), chain: str = Form(...)) -> JSONResponse:
+    return await game_action(player_id, lambda active_game: active_game.found_chain(player_id, chain))
+
+
+@app.post("/game/choose-survivor")
+async def choose_survivor(player_id: str = Form(...), chain: str = Form(...)) -> JSONResponse:
+    return await game_action(player_id, lambda active_game: active_game.choose_survivor(player_id, chain))
+
+
+@app.post("/game/resolve-merge")
+async def resolve_merge(player_id: str = Form(...), decisions: str = Form("{}")) -> JSONResponse:
+    try:
+        parsed_decisions = json.loads(decisions)
+    except json.JSONDecodeError:
+        parsed_decisions = {}
+    return await game_action(player_id, lambda active_game: active_game.resolve_merge(player_id, parsed_decisions))
+
+
+@app.post("/game/buy-stock")
+async def buy_stock(player_id: str = Form(...), purchases: str = Form("")) -> JSONResponse:
+    requested = [purchase for purchase in purchases.split(",") if purchase]
+    return await game_action(player_id, lambda active_game: active_game.buy_stock(player_id, requested))
 
 @app.websocket("/ws")
 async def websocket_endpoint(
@@ -99,7 +135,7 @@ async def websocket_endpoint(
 
     connections[player_id] = websocket
     logger.info("Player connected to lobby: %s", player_name(player_id))
-    await websocket.send_json({"type": "lobby", "lobby": lobby.snapshot()})
+    await websocket.send_json(state_message(player_id))
 
     try:
         while True:
@@ -116,21 +152,44 @@ async def remove_player(player_id: str) -> None:
     lobby.leave(player_id)
     if before != lobby.snapshot():
         logger.info("Player disconnected from lobby: %s", name)
-        await broadcast_lobby()
+        await broadcast_state()
+
+
+async def game_action(player_id: str, action) -> JSONResponse:
+    if game is None:
+        return JSONResponse({"error": "The game has not started.", "lobby": lobby.snapshot(), "game": None}, status_code=400)
+    try:
+        action(game)
+    except GameError as error:
+        return JSONResponse({"error": str(error), "lobby": lobby.snapshot(), "game": game.snapshot(player_id)}, status_code=400)
+
+    await broadcast_state()
+    return JSONResponse({"lobby": lobby.snapshot(), "game": game.snapshot(player_id)})
 
 
 async def broadcast_lobby() -> None:
-    message = {"type": "lobby", "lobby": lobby.snapshot()}
+    await broadcast_state()
+
+
+async def broadcast_state() -> None:
     disconnected: list[str] = []
 
     for player_id, websocket in connections.items():
         try:
-            await websocket.send_json(message)
+            await websocket.send_json(state_message(player_id))
         except (RuntimeError, WebSocketDisconnect):
             disconnected.append(player_id)
 
     for player_id in disconnected:
         connections.pop(player_id, None)
+
+
+def state_message(player_id: str) -> dict:
+    return {"type": "state", "lobby": lobby.snapshot(), "game": game_snapshot(player_id)}
+
+
+def game_snapshot(player_id: str) -> dict | None:
+    return game.snapshot(player_id) if game else None
 
 
 def player_name(player_id: str) -> str:

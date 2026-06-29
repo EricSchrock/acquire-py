@@ -1,6 +1,6 @@
-# Acquire Pregame Lobby
+# Acquire
 
-A small FastAPI app for hosting one Acquire pregame lobby per server process.
+A small FastAPI app for playing Acquire in the browser with one game per server process.
 
 ## Run
 
@@ -10,7 +10,7 @@ Install dependencies:
 python -m pip install -e ".[dev]"
 ```
 
-Start one lobby:
+Start one game server:
 
 ```powershell
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
@@ -18,7 +18,7 @@ python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 The server log prints the local and LAN links players can use to join.
 
-Start a second independent lobby on another port:
+Start a second independent game on another port:
 
 ```powershell
 python -m uvicorn app.main:app --host 0.0.0.0 --port 8001

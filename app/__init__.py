@@ -1,1 +1,1 @@
-"""Acquire lobby app."""
+"""Browser-based Acquire game."""

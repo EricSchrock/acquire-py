@@ -15,7 +15,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
   font: inherit;
 }
 
@@ -39,7 +40,8 @@ button.secondary {
   background: #5d6468;
 }
 
-input {
+input,
+select {
   border: 1px solid #aeb8b4;
   border-radius: 6px;
   min-height: 42px;
@@ -58,7 +60,7 @@ input {
   border: 1px solid #ddd6c9;
   border-radius: 8px;
   box-shadow: 0 16px 40px rgba(37, 31, 23, 0.12);
-  max-width: 760px;
+  max-width: 1180px;
   padding: 32px;
   width: 100%;
 }
@@ -143,7 +145,7 @@ h2 {
 .players {
   display: grid;
   gap: 10px;
-  list-style-position: inside;
+  list-style: none;
   margin: 16px 0 0;
   padding: 0;
 }
@@ -153,17 +155,54 @@ h2 {
   background: #f3f7f6;
   border: 1px solid #d7e2df;
   border-radius: 6px;
+  display: grid;
+  gap: 6px 12px;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 1fr) auto;
+  min-height: 42px;
+  padding: 8px 14px;
+}
+
+.player-identity {
+  align-items: center;
   display: flex;
-  justify-content: space-between;
-  min-height: 48px;
-  padding: 0 14px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .host-badge {
+  background: #dcefeb;
+  border: 1px solid #b8d7d1;
+  border-radius: 999px;
   color: #0f6b5f;
   font-size: 0.82rem;
   font-weight: 800;
+  padding: 2px 8px;
   text-transform: uppercase;
+}
+
+.turn-badge {
+  background: #fff1c2;
+  border: 1px solid #e4b743;
+  border-radius: 999px;
+  color: #7a4e00;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  text-transform: uppercase;
+}
+
+.player-cash {
+  font-weight: 800;
+}
+
+.player-last-move {
+  color: #5d6468;
+  font-size: 0.9rem;
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .started-view {
@@ -171,6 +210,231 @@ h2 {
   padding-top: 24px;
 }
 
+.game-layout {
+  align-items: start;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) 340px;
+}
+
+.board-panel,
+.chains-panel,
+.turn-card {
+  min-width: 0;
+}
+
+.turn-card {
+  grid-column: 1 / -1;
+}
+
+.board {
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(12, minmax(34px, 1fr));
+  margin-top: 14px;
+}
+
+.board-cell {
+  border: 1px solid #b8c0bd;
+  border-radius: 4px;
+  color: #1d2528;
+  min-height: 36px;
+  padding: 0;
+}
+
+.board-cell {
+  background: #f7f6f1;
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.board-cell:disabled {
+  cursor: default;
+}
+
+.board-cell.selected {
+  outline: 3px solid #d4a11e;
+  outline-offset: 1px;
+}
+
+.board-cell.placed-tile {
+  background: #2f383b;
+  border-color: #2f383b;
+  color: #ffffff;
+  font-size: 1rem;
+}
+
+.board-cell.available-tile {
+  background: #fff4bf;
+  border-color: #d4a11e;
+  box-shadow: inset 0 0 0 2px rgba(212, 161, 30, 0.25);
+  color: #1d2528;
+}
+
+.game-actions {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chains-table {
+  border-collapse: collapse;
+  margin-top: 12px;
+  width: 100%;
+}
+
+.chains-table th,
+.chains-table td {
+  border-bottom: 1px solid #d6dcd9;
+  height: 42px;
+  padding: 5px 8px;
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.chains-table th:first-child,
+.chains-table td:first-child {
+  text-align: left;
+}
+
+.chains-table thead th {
+  color: #5d6468;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.chains-table tbody th {
+  font-weight: 800;
+}
+
+.chain-name {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.chain-swatch {
+  border-radius: 3px;
+  display: inline-block;
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}
+
+.stock-control {
+  align-items: center;
+  display: inline-grid;
+  gap: 6px;
+  grid-template-columns: 28px minmax(28px, auto) 28px;
+  justify-items: center;
+  min-height: 30px;
+}
+
+.stock-count {
+  font-weight: 800;
+}
+
+.icon-button {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  font-size: 1rem;
+  justify-content: center;
+  min-height: 28px;
+  padding: 0;
+  width: 28px;
+}
+
+.mini-button {
+  border-radius: 4px;
+  font-size: 0.82rem;
+  min-height: 28px;
+  padding: 0 10px;
+}
+
+.action-field {
+  display: grid;
+  gap: 4px;
+  font-weight: 700;
+}
+
+.action-field span {
+  color: #5d6468;
+  font-size: 0.82rem;
+}
+
+.chain-inactive {
+  background: #c8cfcc;
+}
+
+.chain-sackson,
+.board-cell.chain-sackson:disabled {
+  background: #2f9e44;
+}
+
+.chain-zeta,
+.board-cell.chain-zeta:disabled {
+  background: #1971c2;
+  color: #ffffff;
+}
+
+.chain-america,
+.board-cell.chain-america:disabled {
+  background: #c92a2a;
+  color: #ffffff;
+}
+
+.chain-fusion,
+.board-cell.chain-fusion:disabled {
+  background: #f08c00;
+}
+
+.chain-hydra,
+.board-cell.chain-hydra:disabled {
+  background: #0c8599;
+  color: #ffffff;
+}
+
+.chain-quantum,
+.board-cell.chain-quantum:disabled {
+  background: #7048e8;
+  color: #ffffff;
+}
+
+.chain-phoenix,
+.board-cell.chain-phoenix:disabled {
+  background: #e64980;
+  color: #ffffff;
+}
+
 .hidden {
   display: none;
+}
+
+@media (max-width: 900px) {
+  .shell {
+    padding: 16px;
+  }
+
+  .panel {
+    padding: 20px;
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .turn-card {
+    grid-column: auto;
+  }
+
+  .board {
+    grid-template-columns: repeat(12, minmax(24px, 1fr));
+  }
+
+  .board-cell {
+    font-size: 0.68rem;
+    min-height: 30px;
+  }
 }

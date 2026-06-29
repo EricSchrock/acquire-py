@@ -1,7 +1,7 @@
 [project]
 name = "acquire-py"
 version = "0.1.0"
-description = "A browser-based Acquire pregame lobby."
+description = "A browser-based Acquire game."
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

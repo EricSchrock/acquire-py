@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Acquire Lobby</title>
+    <title>Acquire</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/styles.css') }}">
   </head>
   <body>
@@ -11,7 +11,6 @@
       <section class="panel">
         <div class="masthead">
           <div>
-            <p class="eyebrow">Pregame Lobby</p>
             <h1>Acquire</h1>
           </div>
           <div id="status-pill" class="status-pill">Waiting</div>
@@ -46,14 +45,41 @@
         </section>
 
         <section id="started-view" class="started-view hidden">
-          <h2>Game Started</h2>
-          <p>The lobby is locked. The Acquire board will go here next.</p>
+          <div class="game-layout">
+            <section class="turn-card" aria-labelledby="actions-heading">
+              <h2 id="actions-heading">Turn</h2>
+              <div id="game-actions" class="game-actions"></div>
+            </section>
+
+            <section class="board-panel" aria-labelledby="board-heading">
+              <div class="section-header">
+                <h2 id="board-heading">Board</h2>
+              </div>
+              <div id="board" class="board" aria-label="Acquire board"></div>
+            </section>
+
+            <section class="chains-panel" aria-labelledby="chains-heading">
+              <h2 id="chains-heading">Chains</h2>
+              <table class="chains-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Chain</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Left</th>
+                    <th scope="col">Owned</th>
+                  </tr>
+                </thead>
+                <tbody id="chains"></tbody>
+              </table>
+            </section>
+          </div>
         </section>
       </section>
     </main>
 
     <script>
       window.INITIAL_LOBBY = {{ snapshot | tojson }};
+      window.INITIAL_GAME = {{ game_snapshot | tojson }};
     </script>
     <script src="{{ url_for('static', path='/lobby.js') }}"></script>
   </body>
